@@ -147,6 +147,46 @@ The package uses OAuth 2.0 Implicit Grant flow for simplicity:
 # Enable "Implicit Grant" in Adobe Developer Console
 ```
 
+**"Client error for command A system error occurred (spawn npx ENOENT)"**
+```bash
+# If you encounter this error when using npx in MCP configuration,
+# this often happens when the Node.js/npm environment isn't properly set up
+
+# Solution: Create an npx wrapper script
+cat > ~/.cursor/npx-wrapper.sh << 'SCRIPT'
+#!/bin/bash
+
+# Source nvm to get the correct node version
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+# Use your preferred node version (adjust as needed)
+nvm use 22.0.0 >/dev/null 2>&1
+
+# Execute npx with all passed arguments
+exec npx "$@"
+SCRIPT
+
+# Make the script executable
+chmod +x ~/.cursor/npx-wrapper.sh
+
+# Update your ~/.cursor/mcp.json to use the wrapper instead of npx:
+{
+  "mcpServers": {
+    "your-server": {
+      "command": "/Users/your-username/.cursor/npx-wrapper.sh",
+      "args": [
+        "mcp-remote-with-okta",
+        "https://your-mcp-server.com/mcp"
+      ],
+      "env": {
+        "ADOBE_CLIENT_ID": "your_client_id_here"
+      }
+    }
+  }
+}
+```
+
 ### Debug Mode
 
 The underlying `mcp-remote` runs in debug mode by default. Logs are written to `~/.mcp-auth/`.
